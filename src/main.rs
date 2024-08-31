@@ -195,7 +195,7 @@ impl HalaApplication for MyApplication {
               .build(|| -> Result<()> {
                 let mut is_debug_settings_changed = false;
 
-                ui.text("Options:");
+                ui.text("Culling:");
                 ui.separator();
                 let mut culling_index = if self.settings.debug_settings.disable_culling {
                   1
