@@ -1,0 +1,31 @@
+[package]
+name = "hala-vis-renderer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hala-gfx = { path = "./hala-gfx" }
+hala-renderer = { path = "./hala-renderer" }
+hala-imgui = { path = "./hala-imgui" }
+
+shaders = { path = "./shaders" }
+
+anyhow = { version = "1", default-features = false, features = ["backtrace", "std"] }
+time = { version = "0.3", default-features = false }
+clap = { version = "4.5", default-features = false, features = ["derive", "std"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+toml = { version = "0.8", default-features = false, features = ["parse", "display"] }
+winit = { version = "0.29", default-features = false, features = ["rwh_06", "x11", "wayland", "wayland-dlopen"] }
+glam = { version = "0.29", default-features = false, features = ["std"] }
+imgui = { version = "0", default-features = false }
+
+log = { version = "0", default-features = false }
+log4rs = {version = "1", default-features = false, features = [
+    "gzip",
+    "console_appender",
+    "rolling_file_appender",
+    "compound_policy",
+    "fixed_window_roller",
+    "size_trigger",
+    "pattern_encoder"
+]}

@@ -1,0 +1,6 @@
+scene_file = "assets/dragon_oc.gltf"
+programs_file = "conf/programs.toml"
+
+[window]
+width = 1280
+height = 720

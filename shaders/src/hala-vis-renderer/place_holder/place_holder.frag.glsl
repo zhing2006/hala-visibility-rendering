@@ -1,0 +1,8 @@
+#version 460
+#extension GL_EXT_mesh_shader : require
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference2 : require
+#extension GL_EXT_debug_printf : enable
+#extension GL_ARB_gpu_shader_int64 : enable
+
+#include "place_holder.ps_6_8.hlsl"

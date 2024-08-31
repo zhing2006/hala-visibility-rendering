@@ -1,0 +1,6 @@
+[[projects]]
+name = "hala-vis-renderer"
+global_macros = []
+
+[[projects.optional_macro_combinations]]
+macros = ["HALA_VISIBILITY_RENDERING", "GLOBAL_MESHLETS"]

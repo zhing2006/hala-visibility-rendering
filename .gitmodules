@@ -1,0 +1,12 @@
+[submodule "hala-gfx"]
+	path = hala-gfx
+	url = https://github.com/zhing2006/hala-gfx.git
+	branch = main
+[submodule "hala-renderer"]
+	path = hala-renderer
+	url = https://github.com/zhing2006/hala-renderer.git
+	branch = main
+[submodule "hala-imgui"]
+	path = hala-imgui
+	url = https://github.com/zhing2006/hala-imgui.git
+	branch = main

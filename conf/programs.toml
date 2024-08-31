@@ -1,0 +1,273 @@
+## Depth reduction program.
+[graphics_programs.depth_reduction]
+color_formats = ["R32_SFLOAT"]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "depth_reduction.frag.spv"
+bindings = ["sampled_image", "sampler"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.depth_reduction.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
+## Pre culling program.
+[graphics_programs.pre_culling]
+color_formats = ["R32_UINT"]
+depth_format = "D32_SFLOAT"
+task_shader_file_path = "pre_culling.task.spv"
+mesh_shader_file_path = "visibility_buffer.mesh.spv"
+fragment_shader_file_path = "visibility_buffer.frag.spv"
+push_constant_size = 16  # Meshlet count, HiZ Levels, Screen Width and Screen Height.
+bindings = ["sampled_image", "storage_buffer"]
+
+[graphics_programs.pre_culling.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.pre_culling.color_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.pre_culling.alpha_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.pre_culling.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## Visibility buffer program.
+[graphics_programs.visibility_buffer]
+color_formats = ["R32_UINT"]
+depth_format = "D32_SFLOAT"
+task_shader_file_path = "visibility_buffer.task.spv"
+mesh_shader_file_path = "visibility_buffer.mesh.spv"
+fragment_shader_file_path = "visibility_buffer.frag.spv"
+push_constant_size = 16  # Meshlet count, HiZ Levels, Screen Width and Screen Height.
+bindings = ["sampled_image", "storage_buffer"]
+
+[graphics_programs.visibility_buffer.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.visibility_buffer.color_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.visibility_buffer.alpha_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.visibility_buffer.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## One pass culling program.
+[graphics_programs.one_pass_culling]
+color_formats = ["R32_UINT"]
+depth_format = "D32_SFLOAT"
+task_shader_file_path = "one_pass_culling.task.spv"
+mesh_shader_file_path = "visibility_buffer.mesh.spv"
+fragment_shader_file_path = "visibility_buffer.frag.spv"
+push_constant_size = 16  # Meshlet count, HiZ Levels, Screen Width and Screen Height.
+bindings = ["sampled_image", "storage_buffer"]
+
+[graphics_programs.one_pass_culling.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.one_pass_culling.color_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.one_pass_culling.alpha_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.one_pass_culling.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## No culling visibility buffer program.
+[graphics_programs.no_culling_visibility_buffer]
+color_formats = ["R32_UINT"]
+depth_format = "D32_SFLOAT"
+task_shader_file_path = "no_culling_visibility_buffer.task.spv"
+mesh_shader_file_path = "visibility_buffer.mesh.spv"
+fragment_shader_file_path = "visibility_buffer.frag.spv"
+push_constant_size = 4  # Meshlet count.
+
+[graphics_programs.no_culling_visibility_buffer.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.no_culling_visibility_buffer.color_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.no_culling_visibility_buffer.alpha_blend]
+enable = false
+src_factor = "one"
+dst_factor = "zero"
+op = "add"
+
+[graphics_programs.no_culling_visibility_buffer.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## Material depth program.
+[graphics_programs.material_depth]
+color_formats = []
+depth_format = "D32_SFLOAT"
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "material_depth.frag.spv"
+bindings = ["input_attachment", "input_attachment"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.material_depth.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "always"
+
+## Material tile program.
+[graphics_programs.material_tile]
+color_formats = ["R32G32B32A32_SFLOAT", "R32G32B32A32_SFLOAT"]
+depth_format = "D32_SFLOAT"
+vertex_shader_file_path = "material_tile.vert.spv"
+fragment_shader_file_path = "material_tile.frag.spv"
+push_constant_size = 24  # Screen width, screen height, tile X size, number of tiles, material index and debug grid line width.
+bindings = ["storage_buffer", "input_attachment"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.material_tile.depth_info]
+test_enable = true
+write_enable = false
+compare_op = "equal"
+
+## Lighting program.
+[graphics_programs.lighting]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "lighting.frag.spv"
+push_constant_size = 8   # Screen width and screen height.
+bindings = ["input_attachment", "input_attachment", "input_attachment"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.lighting.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
+## Triangle visualization program.
+[graphics_programs.triangle_visualization]
+task_shader_file_path = "common/default.task.spv"
+mesh_shader_file_path = "visualization/triangle.mesh.spv"
+fragment_shader_file_path = "visualization/triangle.frag.spv"
+push_constant_size = 4  # Meshlet count.
+
+[graphics_programs.triangle_visualization.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.triangle_visualization.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## Meshlet visualization program.
+[graphics_programs.meshlet_visualization]
+task_shader_file_path = "common/default.task.spv"
+mesh_shader_file_path = "visualization/meshlet.mesh.spv"
+fragment_shader_file_path = "common/vertex_color.frag.spv"
+push_constant_size = 4  # Meshlet count.
+
+[graphics_programs.meshlet_visualization.rasterizer_info]
+front_face = "counter_clockwise"
+cull_mode = "back"
+polygon_mode = "fill"
+line_width = 1.0
+
+[graphics_programs.meshlet_visualization.depth_info]
+test_enable = true
+write_enable = true
+compare_op = "greater"
+
+## HiZ visualization program.
+[graphics_programs.hiz_visualization]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "visualization/hiz_buffer.frag.spv"
+push_constant_size = 4  # Depth scale.
+bindings = ["sampled_image", "sampler"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.hiz_visualization.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
+## ID buffer visualization program.
+[graphics_programs.id_buffer_visualization]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "visualization/id_buffer.frag.spv"
+bindings = ["input_attachment"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.id_buffer_visualization.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
+## Attachment to screen program.
+[graphics_programs.attachment_to_screen]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "common/attachment_2_screen.frag.spv"
+push_constant_size = 16  # Scale.
+bindings = ["input_attachment"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.attachment_to_screen.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
+###############################################################################
+
+## Clear indirect buffer program.
+[compute_programs.clear_indirect_buffer]
+shader_file_path = "clear_indirect_buffer.comp.spv"
+push_constant_size = 4  # Max material count.
+bindings = ["storage_buffer"]
+
+## Material classification program.
+[compute_programs.material_classification]
+shader_file_path = "material_classification.comp.spv"
+push_constant_size = 16  # Screen size, tile width and max tile count.
+bindings = ["combined_image_sampler", "combined_image_sampler", "storage_buffer", "storage_buffer"]
