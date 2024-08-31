@@ -1,4 +1,4 @@
-scene_file = "assets/dragon_oc.gltf"
+scene_file = "assets/rgb.gltf"
 programs_file = "conf/programs.toml"
 
 [window]
