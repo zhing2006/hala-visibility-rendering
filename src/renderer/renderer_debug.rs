@@ -61,11 +61,11 @@ impl VisRenderer {
     )?;
     let mut culled_count = 0;
     for flag in culling_flags.iter() {
-      if *flag == 0 {
+      if *flag != 2 {
         culled_count += 1;
       }
     }
-    log::debug!("Culled Result: {} / {}, Culling Rate: {:.2}%", culled_count, scene.meshlet_count, culled_count as f32 / scene.meshlet_count as f32 * 100.0);
+    log::info!("Culled Result: {} / {}, Culling Rate: {:.2}%", culled_count, scene.meshlet_count, culled_count as f32 / scene.meshlet_count as f32 * 100.0);
 
     Ok(())
   }

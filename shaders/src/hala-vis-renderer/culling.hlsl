@@ -26,7 +26,7 @@ bool to_screen_aabb(in float4x4 vp_mtx, in float3 aabb_min_ws, in float3 aabb_ma
 
   max_depth = max(max(max(max(max(max(max(P0.z, P1.z), P2.z), P3.z), P4.z), P5.z), P6.z), P7.z);
 
-  if (max_depth >= 1.0) {
+  if (max_depth >= 1.0 || max_depth < 0.0) {
     return true;
   }
 
@@ -63,11 +63,40 @@ bool to_screen_aabb(in float4x4 vp_mtx, in float3 aabb_min_ws, in float3 aabb_ma
   //   aabb.zw = max(aabb.zw, points[point_index].xy);
   //   max_depth = max(max_depth, points[point_index].z);
   // }
-  // if (max_depth >= 1.0) {
+  // if (max_depth >= 1.0 || max_depth < 0.0) {
   //   return true;
   // }
 
   // return false;
+}
+
+// https://zeux.io/2023/01/12/approximate-projected-bounds
+// Convert the sphere to screen space.
+//   true: the aabb is collide near plane.
+//   false: the aabb is not collide near plane.
+bool view_sphere_to_screen_aabb(in float4x4 p_mtx, in float3 center_vs, in float radius, out float4 aabb, out float max_depth) {
+  max_depth = -p_mtx[3][2] / (center_vs.z + radius);
+  if (max_depth >= 1.0 || max_depth < 0.0) {
+    return true;
+  }
+
+  const float inv_width = p_mtx[0][0] * 0.5;
+  const float inv_height = p_mtx[1][1] * 0.5;
+
+  const float3 c = float3(center_vs.xy, -center_vs.z);
+  const float3 cr = c * radius;
+  const float czr2 = c.z * c.z - radius * radius;
+
+  const float vx = sqrt(c.x * c.x + czr2);
+  const float min_x = (vx * c.x - cr.z) / (vx * c.z + cr.x);
+  const float max_x = (vx * c.x + cr.z) / (vx * c.z - cr.x);
+
+  const float vy = sqrt(c.y * c.y + czr2);
+  const float min_y = (vy * c.y - cr.z) / (vy * c.z + cr.y);
+  const float max_y = (vy * c.y + cr.z) / (vy * c.z - cr.y);
+
+  aabb = float4(min_x * inv_width, -max_y * inv_height, max_x * inv_width, -min_y * inv_height) + 0.5;
+  return false;
 }
 
 // Check the aabb is occluded by hiz image.

@@ -82,10 +82,34 @@ END_PUSH_CONSTANTS(PushConstants, g_push_constants)
     // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by cone test.\n", meshlet.draw_index, meshlet_index);
   }
 
+  // if (is_visible) {
+  //   const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
+  //   const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
+  //   if (is_box_frustum_culled(bound_box_min, bound_box_max)) {
+  //     is_visible = false;
+  //     // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by frustum test.\n", meshlet.draw_index, meshlet_index);
+  //   }
+
+  //   if (is_visible) {
+  //     float4 aabb;
+  //     float max_depth;
+  //     if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb, max_depth)) {
+  //       // printf("[TASK SHADER] Draw Index %d Meshlet %d is going to be occlusion tested.\n", meshlet.draw_index, meshlet_index);
+  //       if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb.xy, aabb.zw, max_depth)) {
+  //         is_occluded_by_hiz = true;
+  //         is_visible = false;
+  //         // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by occlusion test.\n", meshlet.draw_index, meshlet_index);
+  //       }
+  //     }
+  //   }
+  // }
   if (is_visible) {
-    const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
-    const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
-    if (is_box_frustum_culled(bound_box_min, bound_box_max)) {
+    const float world_scale = max(length(per_object_data.m_mtx[0]), max(length(per_object_data.m_mtx[1]), length(per_object_data.m_mtx[2])));
+    const float3 bound_sphere_center_vs = mul(per_object_data.mv_mtx, float4(meshlet.bound_sphere.xyz, 1.0)).xyz;
+    const float3 bound_sphere_center_ws = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz, 1.0)).xyz;
+    const float bound_sphere_radius = meshlet.bound_sphere.w * world_scale;
+
+    if (is_sphere_frustum_culled(bound_sphere_center_ws, bound_sphere_radius)) {
       is_visible = false;
       // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by frustum test.\n", meshlet.draw_index, meshlet_index);
     }
@@ -93,7 +117,7 @@ END_PUSH_CONSTANTS(PushConstants, g_push_constants)
     if (is_visible) {
       float4 aabb;
       float max_depth;
-      if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb, max_depth)) {
+      if (!view_sphere_to_screen_aabb(g_global_uniform.p_mtx, bound_sphere_center_vs, bound_sphere_radius, aabb, max_depth)) {
         // printf("[TASK SHADER] Draw Index %d Meshlet %d is going to be occlusion tested.\n", meshlet.draw_index, meshlet_index);
         if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb.xy, aabb.zw, max_depth)) {
           is_occluded_by_hiz = true;
@@ -104,7 +128,7 @@ END_PUSH_CONSTANTS(PushConstants, g_push_constants)
     }
   }
 
-  STORE_RWBUFFER(out_culling_flags, meshlet_index * 4, (is_visible || !is_occluded_by_hiz) ? 1 : 0);
+  STORE_RWBUFFER(out_culling_flags, meshlet_index * 4, is_visible ? 2 : (!is_occluded_by_hiz ? 1 : 0));
 
   if (is_visible) {
     const uint index = WavePrefixCountBits(is_visible);
