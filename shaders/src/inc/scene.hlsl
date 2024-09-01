@@ -80,20 +80,14 @@ BEGIN_BUFFER_BINDLESS(1, 2, Vertex)
 END_BUFFER_BINDLESS(1, 2, Vertex, g_vertices)
 
 BEGIN_BUFFER_BINDLESS(1, 3, uint)
-END_BUFFER_BINDLESS(1, 3, uint, g_indices)
-
-BEGIN_BUFFER_BINDLESS(1, 4, Meshlet)
-END_BUFFER_BINDLESS(1, 4, Meshlet, g_meshlets)
-
-BEGIN_BUFFER_BINDLESS(1, 5, uint)
-END_BUFFER_BINDLESS(1, 5, uint, g_unique_vertices)
+END_BUFFER_BINDLESS(1, 3, uint, g_unique_vertices)
 
 #ifdef HALA_HLSL
-[[vk::binding(6, 1)]]
+[[vk::binding(4, 1)]]
 ByteAddressBuffer g_unique_primitives[];
 #else
-BEGIN_BUFFER_BINDLESS(1, 6, uint)
-END_BUFFER_BINDLESS(1, 6, uint, g_unique_primitives)
+BEGIN_BUFFER_BINDLESS(1, 4, uint)
+END_BUFFER_BINDLESS(1, 4, uint, g_unique_primitives)
 #endif
 
 TEXTURE2D_BINDLESS(2, 0, g_textures)

@@ -165,14 +165,14 @@ hala_gfx::HalaDescriptorSetLayout::new(
     },
     // 每个Meshlet的顶点信息，storage buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
-      binding_index: 5,
+      binding_index: 3,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
       descriptor_count: meshlet_vertex_buffers.len() as u32,
       ...
     },
     // 每个Meshlet的三角形信息，storage buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
-      binding_index: 6,
+      binding_index: 4,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
       descriptor_count: meshlet_primitive_buffers.len() as u32,
       ...

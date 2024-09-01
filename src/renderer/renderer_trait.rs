@@ -154,36 +154,20 @@ impl HalaRendererTrait for VisRenderer {
               | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
             binding_flags: hala_gfx::HalaDescriptorBindingFlags::PARTIALLY_BOUND
           },
-          hala_gfx::HalaDescriptorSetLayoutBinding { // Index storage buffers.
-            binding_index: 3,
-            descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
-            descriptor_count: index_buffers.len() as u32,
-            stage_flags: hala_gfx::HalaShaderStageFlags::FRAGMENT | hala_gfx::HalaShaderStageFlags::COMPUTE
-            | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
-            binding_flags: hala_gfx::HalaDescriptorBindingFlags::PARTIALLY_BOUND
-          },
-          hala_gfx::HalaDescriptorSetLayoutBinding { // Meshlet information storage buffers.
-            binding_index: 4,
-            descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
-            descriptor_count: meshlet_buffers.len() as u32,
-            stage_flags: hala_gfx::HalaShaderStageFlags::FRAGMENT | hala_gfx::HalaShaderStageFlags::COMPUTE
-            | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
-            binding_flags: hala_gfx::HalaDescriptorBindingFlags::PARTIALLY_BOUND
-          },
           hala_gfx::HalaDescriptorSetLayoutBinding { // Meshlet vertex storage buffers.
-            binding_index: 5,
+            binding_index: 3,
             descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
             descriptor_count: meshlet_vertex_buffers.len() as u32,
             stage_flags: hala_gfx::HalaShaderStageFlags::FRAGMENT | hala_gfx::HalaShaderStageFlags::COMPUTE
-            | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
+              | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
             binding_flags: hala_gfx::HalaDescriptorBindingFlags::PARTIALLY_BOUND
           },
           hala_gfx::HalaDescriptorSetLayoutBinding { // Meshlet primitive storage buffers.
-            binding_index: 6,
+            binding_index: 4,
             descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
             descriptor_count: meshlet_primitive_buffers.len() as u32,
             stage_flags: hala_gfx::HalaShaderStageFlags::FRAGMENT | hala_gfx::HalaShaderStageFlags::COMPUTE
-            | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
+              | hala_gfx::HalaShaderStageFlags::TASK | hala_gfx::HalaShaderStageFlags::MESH | hala_gfx::HalaShaderStageFlags::VERTEX,
             binding_flags: hala_gfx::HalaDescriptorBindingFlags::PARTIALLY_BOUND
           },
         ],
@@ -228,29 +212,17 @@ impl HalaRendererTrait for VisRenderer {
         2,
         vertex_buffers.as_slice(),
       );
-      dynamic_descriptor_set.update_storage_buffers(
-        index,
-        3,
-        index_buffers.as_slice(),
-      );
-      if !meshlet_buffers.is_empty() {
-        dynamic_descriptor_set.update_storage_buffers(
-          index,
-          4,
-          meshlet_buffers.as_slice(),
-        );
-      }
       if !meshlet_vertex_buffers.is_empty() {
         dynamic_descriptor_set.update_storage_buffers(
           index,
-          5,
+          3,
           meshlet_vertex_buffers.as_slice(),
         );
       }
       if !meshlet_primitive_buffers.is_empty() {
         dynamic_descriptor_set.update_storage_buffers(
           index,
-          6,
+          4,
           meshlet_primitive_buffers.as_slice(),
         );
       }
