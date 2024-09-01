@@ -79,9 +79,10 @@ END_PUSH_CONSTANTS(PushConstants, g_push_constants)
     const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
     const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
 
-    float3 aabb_min_screen, aabb_max_screen;
-    if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb_min_screen, aabb_max_screen)) {
-      if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb_min_screen, aabb_max_screen)) {
+    float4 aabb;
+    float max_depth;
+    if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb, max_depth)) {
+      if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb.xy, aabb.zw, max_depth)) {
         is_visible = false;
         // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by occlusion test.\n", meshlet.draw_index, meshlet_index);
       } else {
