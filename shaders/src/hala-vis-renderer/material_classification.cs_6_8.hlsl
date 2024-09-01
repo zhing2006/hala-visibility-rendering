@@ -25,7 +25,7 @@
   [[vk::binding(3, 3)]]
   RWByteAddressBuffer out_tile_index;
 
-  groupshared uint gs_material_flag[CLASSIFY_MATERIAL_MAX];
+  groupshared uint gs_material_flag[CLASSIFY_NUM_OF_MATERIALS_PER_GROUP];
 
   #define lessThan(x, y) (x < y)
 
@@ -45,7 +45,7 @@
     uint out_tile_index[];
   };
 
-  shared uint gs_material_flag[CLASSIFY_MATERIAL_MAX];
+  shared uint gs_material_flag[CLASSIFY_NUM_OF_MATERIALS_PER_GROUP];
 
   #define g_global_meshlets (g_global_meshlets.data)
   #define g_draw_data (g_draw_data.data)

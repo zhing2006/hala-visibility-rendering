@@ -79,8 +79,8 @@ pub struct GlobalConstants {
 impl GlobalConstants {
   pub const CLASSIFY_TILE_WIDTH: u32 = 64;
   pub const CLASSIFY_THREAD_WIDTH: u32 = 16;
-  pub const CLASSIFY_MATERIAL_MAX: u32 = 256;
-  pub const CLASSIFY_DEPTH_RANGE: u32 = Self::CLASSIFY_MATERIAL_MAX * 32;
+  pub const CLASSIFY_NUM_OF_MATERIALS_PER_GROUP: u32 = Self::CLASSIFY_THREAD_WIDTH * Self::CLASSIFY_THREAD_WIDTH;
+  pub const CLASSIFY_DEPTH_RANGE: u32 = Self::CLASSIFY_NUM_OF_MATERIALS_PER_GROUP * 32;
 }
 
 /// The visibility renderer.

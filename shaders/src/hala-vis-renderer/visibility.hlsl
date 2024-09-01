@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Global definitions for the material classification pass.
-#define CLASSIFY_TILE_WIDTH   (64)
-#define CLASSIFY_THREAD_WIDTH (16)
-#define CLASSIFY_MATERIAL_MAX (256)
-#define CLASSIFY_DEPTH_RANGE  (CLASSIFY_MATERIAL_MAX * 32)
+#define CLASSIFY_TILE_WIDTH                 (64)
+#define CLASSIFY_THREAD_WIDTH               (16)
+#define CLASSIFY_NUM_OF_MATERIALS_PER_GROUP (256)
+#define CLASSIFY_DEPTH_RANGE                (CLASSIFY_NUM_OF_MATERIALS_PER_GROUP * 32)
 
 //////////////////////////////////////////////////////////////////////////////
 // Barycentric derivatives definition.
@@ -141,12 +141,6 @@ VertexAttributes get_vertex_attributes(in float2 screen_size, in float2 pixel_po
   const float3 p0 = mul(per_object_data.m_mtx, vp0).xyz;
   const float3 p1 = mul(per_object_data.m_mtx, vp1).xyz;
   const float3 p2 = mul(per_object_data.m_mtx, vp2).xyz;
-  // const float3 n0 = float3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z);
-  // const float3 n1 = float3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z);
-  // const float3 n2 = float3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z);
-  // const float3 t0 = float3(vertex0.tangent_x, vertex0.tangent_y, vertex0.tangent_z);
-  // const float3 t1 = float3(vertex1.tangent_x, vertex1.tangent_y, vertex1.tangent_z);
-  // const float3 t2 = float3(vertex2.tangent_x, vertex2.tangent_y, vertex2.tangent_z);
   const float3 n0 = normalize(mul(float4(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z, 0.0), per_object_data.i_m_mtx).xyz);
   const float3 n1 = normalize(mul(float4(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z, 0.0), per_object_data.i_m_mtx).xyz);
   const float3 n2 = normalize(mul(float4(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z, 0.0), per_object_data.i_m_mtx).xyz);
