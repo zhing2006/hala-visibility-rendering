@@ -4,39 +4,39 @@
 
 [English](README.md) | [中文](README_CN.md) | [日本語](README_JP.md) | [한국어](README_KO.md)
 
-## Introduction
+## 引言
 
-The concept of the Visibility Buffer can be traced back to 2013, when it was first introduced by Christopher A. Burns and Warren A. Hunt in their paper [The Visibility Buffer: A Cache-Friendly Approach to Deferred Shading](https://jcgt.org/published/0002/02/04/). Over the past decade, this technology has gained widespread attention and application in the industry due to its efficiency in handling complex scenes.
+Visibility Buffer的概念最早可以追溯到2013年，由Christopher A. Burns和Warren A. Hunt在他们的论文[The Visibility Buffer: A Cache-Friendly Approach to Deferred Shading](https://jcgt.org/published/0002/02/04/)中首次提出。自那时起，已经过去了十多年。这一技术因其在复杂场景下的高效，逐渐得到了业界的广泛关注和应用。
 
-Today, more and more game engines and actual game projects are combining GPU Driven and Visibility Buffer technologies to enhance rendering performance and image quality. This combination allows modern graphics rendering technology to handle scene complexity and large-scale data more efficiently, effectively reducing the burden on the CPU while fully leveraging the computational power of the GPU. This project aims to implement the most basic Visibility Rendering from scratch, starting with GPU Culling and driving all subsequent rendering steps.
+现如今，越来越多的游戏引擎和实际游戏项目开始将GPU Driven与Visibility Buffer技术相结合，以提升渲染性能和画面质量。这一结合使得现代图形渲染技术在处理场景复杂性和大规模数据时更加效率，有效地减少了CPU的负担，同时充分发挥了GPU的计算能力。本项目旨在从零开始实现最基础的Visibility Rendering，从GPU Culling开始，推动后续所有渲染步骤。
 
 ![Image Intro](images/intro.png)
 
-## Development Environment Setup
+## 开发环境搭建
 
-Currently, the entire development environment has only been tested on the Windows platform using an RTX 4090 (due to limited equipment, further compatibility testing is not possible at this time). The development is based on `hala-gfx`, `hala-renderer`, and `hala-imgui`.
+目前整个开发环境仅在Windows平台上使用RTX 4090测试通过（由于本人设备有限暂时无法测试更多的兼容性）。基于`hala-gfx`、`hala-renderer`和`hala-imgui`开发。
 
-* `hala-gfx` is responsible for Vulkan calls and encapsulation.
-* `hala-renderer` is responsible for reading Mesh information from glTF files and uploading it to the GPU.
-* `hala-imgui` is the Rust bridge for imGUI, responsible for displaying and interacting with the user interface.
+* `hala-gfx`负责Vulkan调用和封装。
+* `hala-renderer`负责从glTF文件中读取Mesh信息并上传到GPU。
+* `hala-imgui`是imGUI的Rust桥接，负责用户界面的显示和互动。
 
-Install Rust version 1.70+; if already installed, update to the latest version using `rustup update`. Use `git clone --recursive` to pull the repository and its submodules. Compile the Debug version with `cargo build` or the Release version with `cargo build -r`.
+安装1.70+的Rust，如果已经安装`rustup update`为最新版本。使用`git clone --recursive`拉取仓库及其submodule。`cargo build`编译构建Debug版，或者`cargo build -r`构建Release版。
 
-After compilation, you can run it directly.
+完成编译后可以直接运行。
 
-    ./target/(debug or release)/hala-vis-renderer -c conf/config.toml
+    ./target/（debug或release）/hala-vis-renderer -c conf/config.toml
 
-## Rendering Process
+## 渲染流程
 
-**Note: All the following code snippets are not directly executable. Additionally, for explanatory purposes, many Shader codes have been partially "pseudo-coded" and cannot be directly compiled.**
+**注意：以下所有代码均为代码片段不可直接运行。另外为了解释方便很多Shader代码都做了部分“伪代码”化，不可直接编译。**
 
-For the specific source code, please refer to the GitHub repository: [hala-visibility-rendering](https://github.com/zhing2006/hala-visibility-rendering).
+具体源码请参看GitHub仓库：[hala-visibility-rendering](https://github.com/zhing2006/hala-visibility-rendering)。
 
-### Data Preparation
+### 数据准备
 
-To efficiently use GPU Driven rendering, all geometric data (Mesh) is first converted into Meshlets using the [meshopt](https://crates.io/crates/meshopt) crate.
+为了高效的使用GPU Driven进行渲染，首先将所有的几何数据（Mesh）通过[meshopt](https://crates.io/crates/meshopt) crate转化为Meshlet。
 
-The following is a code snippet for processing a single Mesh.
+以下为处理单个Mesh的代码片段。
 ```rust
   let vertex_data_adapter = unsafe {
     meshopt::VertexDataAdapter::new(
@@ -48,9 +48,9 @@ The following is a code snippet for processing a single Mesh.
   let meshlets = meshopt::clusterize::build_meshlets(
     indices.as_slice(),
     &vertex_data_adapter,
-    64,   // Maximum number of vertices per Meshlet
-    124,  // Maximum number of triangles per Meshlet
-    0.5,  // Cone weight, mainly affecting the efficiency of backface culling
+    64,   // 单个Meshlet最大顶点数
+    124,  // 单个Meshlet最大三角形数
+    0.5,  // Cone weight，主要影响背面剔除的效率
   );
   for (meshlet_index, meshlet) in meshlets.meshlets.iter().enumerate() {
     let wrapped_meshlet = meshlets.get(meshlet_index);
@@ -69,20 +69,20 @@ The following is a code snippet for processing a single Mesh.
       num_of_vertices: meshlet.vertex_count,
       offset_of_primitives: meshlet_primitives.len() as u32,
       num_of_primitives: (wrapped_meshlet.triangles.len() / 3) as u32,
-      draw_index, // Save the Draw Index of this Meshlet, simplified here. In a production environment, the true Meshlet rendering queue index should be used after CPU sorting
+      draw_index, // 保存此Meshlet的Draw Index，此处为简化操作。生产环境需要使用CPU排序后真正的Meshlet渲染队列的索引
     };
 
     for i in wrapped_meshlet.vertices.iter() {
       meshlet_vertices.push(*i);
     }
     for c in wrapped_meshlet.triangles.chunks(3) {
-      // Since the maximum number of vertices per Meshlet is 64, the vertex index of each triangle can be stored using 8 bits
+      // 由于Meshlet最大顶点数为64，每个三角形的顶点索引使用8位保存绰绰有余
       meshlet_primitives.push((c[0] as u32) | (c[1] as u32) << 8 | (c[2] as u32) << 16);
     }
   }
 ```
 
-Remember the `draw_index` mentioned above? Next, we prepare the DrawData data for indexing.
+还记得上面提到的`draw_index`吗？接下来就是准备其用来索引的DrawData数据。
 
 ```rust
 struct DrawData {
@@ -95,38 +95,38 @@ draw_data.push(DrawData {
   material_index: prim.material_index,
 });
 ```
-object_index is used to index the relevant information of the Object, such as Transform, etc. material_index is used to index the material information used for this draw, for Alpha Test and shading.
+object_index用于索引Object的相关信息，比如Transform等。material_index用于索引此draw用到的材质信息用于Alpha Test和着色。
 
-Bind the Camera data, Light data, DrawData data, and Meshlet data for the entire scene.
+绑定整个场景的Camera数据、Light数据、DrawData数据和Meshlet数据
 ```rust
 hala_gfx::HalaDescriptorSetLayout::new(
   Rc::clone(&logical_device),
   &[
-    // Global uniform buffer, storing global information such as vp matrix, inverse vp matrix, etc.
+    // 全局uniform buffer，保存全局信息，比如vp矩阵，逆vp矩阵等。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 0,
       descriptor_type: hala_gfx::HalaDescriptorType::UNIFORM_BUFFER,
       ...
     },
-    // Camera uniform buffer, storing camera information in the scene, such as the position of each camera.
+    // 相机uniform buffer，保存场景中的相机信息，比如每个相机的位置等。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 1,
       descriptor_type: hala_gfx::HalaDescriptorType::UNIFORM_BUFFER,
       ...
     },
-    // Light uniform buffer, storing light information in the scene, such as the position of each light.
+    // 灯光uniform buffer，保存场景中的灯光信息，比如每个灯光的位置等。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 2,
       descriptor_type: hala_gfx::HalaDescriptorType::UNIFORM_BUFFER,
       ...
     },
-    // Storage buffer for the DrawData information mentioned above.
+    // 上面提到的DrawData信息的storage buffer。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 3,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
       ...
     },
-    // Storage buffer for Meshlet information.
+    // Meshlet信息的storage buffer。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 4,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
@@ -137,40 +137,40 @@ hala_gfx::HalaDescriptorSetLayout::new(
 )?,
 ```
 
-Use Bindless to bind Material data, Object data, Mesh data, and Meshlet data.
+采用Bindless绑定Material数据、Object数据、Mesh数据和Meshlet数据。
 ```rust
 hala_gfx::HalaDescriptorSetLayout::new(
   Rc::clone(&logical_device),
   &[
-    // Array of uniform buffers storing Material information.
+    // 保存Material信息的uniform buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 0,
       descriptor_type: hala_gfx::HalaDescriptorType::UNIFORM_BUFFER,
       descriptor_count: scene.materials.len() as u32,
       ...
     },
-    // Array of uniform buffers storing Object information.
+    // 保存Object信息的uniform buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 1,
       descriptor_type: hala_gfx::HalaDescriptorType::UNIFORM_BUFFER,
       descriptor_count: scene.meshes.len() as u32,
       ...
     },
-    // Storage buffer array for vertex information of each Mesh.
+    // 每个Mesh的顶点信息，storage buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 2,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
       descriptor_count: vertex_buffers.len() as u32,
       ...
     },
-    // Storage buffer array for vertex information of each Meshlet.
+    // 每个Meshlet的顶点信息，storage buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 3,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
       descriptor_count: meshlet_vertex_buffers.len() as u32,
       ...
     },
-    // Storage buffer array for triangle information of each Meshlet.
+    // 每个Meshlet的三角形信息，storage buffer数组。
     hala_gfx::HalaDescriptorSetLayoutBinding {
       binding_index: 4,
       descriptor_type: hala_gfx::HalaDescriptorType::STORAGE_BUFFER,
@@ -182,19 +182,19 @@ hala_gfx::HalaDescriptorSetLayout::new(
 )?,
 ```
 
-Finally, use Bindless to bind Texture data.
+最后是采用Bindless绑定Texture数据。
 ```rust
   hala_gfx::HalaDescriptorSetLayout::new(
     Rc::clone(&logical_device),
     &[
-      // Array of all textures' Images.
+      // 所有贴图的Image数组。
       hala_gfx::HalaDescriptorSetLayoutBinding {
         binding_index: 0,
         descriptor_type: hala_gfx::HalaDescriptorType::SAMPLED_IMAGE,
         descriptor_count: scene.textures.len() as u32,
         ...
       },
-      // Array of all texture Samplers.
+      // 所有贴图采样器的Sampler数组。
       hala_gfx::HalaDescriptorSetLayoutBinding { // All samplers in the scene.
         binding_index: 1,
         descriptor_type: hala_gfx::HalaDescriptorType::SAMPLER,
@@ -206,9 +206,9 @@ Finally, use Bindless to bind Texture data.
   )?,
 ```
 
-At this point, all data is ready, and we can start GPU rendering. We use a single TaskDraw to render the entire scene.
+至此所有数据都准备就绪，接下来就是开始GPU渲染。我们使用一次TaskDraw绘制整个场景。
 ```rust
-// Each Task thread group has 32 threads.
+// 每个Task线程组有32个线程。
 let dispatch_size_x = (scene.meshlet_count + 32 - 1) / 32;
 graphics_command_buffers.draw_mesh_tasks(
   index,
@@ -218,11 +218,11 @@ graphics_command_buffers.draw_mesh_tasks(
 );
 ```
 
-### GPU Culling
+### GPU裁剪
 
-First, backface culling and frustum culling need to be performed. Here, the Cone and Sphere data generated during the previous Meshlet calculation will be used.
+首先需要进行背面裁剪和视锥裁剪。这里就需要用到之前计算Meshlet时产生的Cone和Sphere数据。
 ```rust
-  // Backface culling.
+  // 背面裁剪。
   const float3 cone_apex = mul(per_object_data.m_mtx, float4(meshlet.cone_apex, 1.0)).xyz;
   const float3 cone_axis = normalize(mul(float4(meshlet.cone_axis, 0.0), per_object_data.i_m_mtx).xyz);
   if (dot(normalize(cone_apex - camera_position), cone_axis) >= meshlet.cone_cutoff) {
@@ -230,7 +230,7 @@ First, backface culling and frustum culling need to be performed. Here, the Cone
   }
 
   if (is_visible) {
-    // Frustum culling. Due to non-uniform scaling of the object, we convert to a bounding box instead of directly using the bounding sphere for culling.
+    // 视锥裁剪，由于Object有非等比缩放所以这里不直接使用Bound Sphere裁剪而是转换为Bound Box后进行。
     const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
     const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
     if (is_box_frustum_culled(bound_box_min, bound_box_max)) {
@@ -239,47 +239,47 @@ First, backface culling and frustum culling need to be performed. Here, the Cone
   }
 ```
 
-Next, occlusion culling is performed using a 2-Phase Occlusion Culling method.
+接下来就是进行遮挡剔除，这里使用2-Phase Occlusion Culling。
 
 ![Image Culling](images/culling.png)
 
-Assume that in the current frame (Frame N), there is a previous frame (Frame N-1) marked in gray, where two boxes were rendered. This depth buffer will be used in Frame N.
+假设当前帧（N 帧）之前有一帧灰色标记的前一帧（N-1 帧），在N-1 帧中绘制了两个盒子。这个深度缓冲将延续到N 帧中使用。
 
-In Frame N, frustum culling and backface culling are first completed. In this step, polygons outside the view frustum are culled.
+在N 帧中，首先完成视锥剔除和背面剔除。在这一步中，视野范围外的五边形被剔除。
 
-Next, using the depth buffer from the previous frame, the blue ellipse and square are rendered. The ellipse is rendered regardless, but the square behind it is also rendered. This situation, where objects that should not be rendered are rendered, is called a False Positive. However, if the camera does not move significantly in the next frame, False Positives generally do not persist for long.
+接下来，由于使用前一帧的深度缓冲，蓝色的椭圆和方形将被渲染。椭圆形无所谓，但遮挡在它后面的方形也会被渲染。这种状况下本应不被渲染的物体被渲染称为False Positive（假阳性）。不过，如果在下一帧中摄像机没有大幅移动，False Positive一般不会持续很久。
 
-The orange sphere and light green triangle are culled in the first phase using the depth buffer from the previous frame. All objects culled in the first phase are marked as False Negatives and are not rendered temporarily.
+橙色的球体和淡绿色的三角形在第一阶段被前一帧的深度缓冲剔除。所有在第一阶段被遮挡剔除的物体都会标记为False Negative，因此暂时不进行渲染。
 
-Before the second phase of culling, the ellipse and square that were not culled in the first phase are drawn into the depth buffer. The second phase then uses this depth buffer for culling. The orange sphere, which was culled in the first phase, is not culled under this depth buffer and is thus rendered, proving it to be a False Negative. However, the light green triangle is still occluded by the ellipse in this phase, proving it is not a False Negative and should indeed be culled.
+在第二阶段剔除之前，第一阶段未被剔除的椭圆和方形会被绘制到深度缓冲。第二阶段则使用这个深度缓冲执行剔除。第一阶段被剔除的橙色球体在此深度缓冲下未被剔除，因此会绘制出来，证明了它是False Negative。然而，淡绿色的三角形这次还是被椭圆遮挡，证明它不是False Negative，而确实应该被剔除。
 
-The specific implementation is as follows.
+具体实现见如下代码。
 
 Pass One
 ```HLSL
 float3 aabb_min_screen, aabb_max_screen;
-// Calculate the screen-space AABB. If the box intersects with the camera's near clipping plane, to_screen_aabb returns true, and occlusion culling is not needed.
+// 计算屏幕空间的AABB，如果Box与相机前裁剪面相交to_screen_aabb返回true不需要进行遮挡剔除。
 if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb_min_screen, aabb_max_screen)) {
-  // If occluded, record occlusion and visibility information.
+  // 如果被遮挡，则记录遮挡和可见信息。
   if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb_min_screen, aabb_max_screen)) {
     is_occluded_by_hiz = true;
     is_visible = false;
   }
 }
 
-// If visible (true positive) and not occluded (false positive), mark this pass as rendered with 1. Pass Two only processes Meshlets marked as 0.
+// 如果可见（真阳性），没有被遮挡（假阳性）则此Pass已渲染标记为1，Pass Two只处理标记为0的Meshlet。
 out_culling_flags.Store(meshlet_index * 4, (is_visible || !is_occluded_by_hiz) ? 1 : 0);
 ```
 
 Pass Two
 ```HLSL
 const uint culling_flag = in_culling_flags.Load(meshlet_index * 4);
-// If Pass One did not render this Meshlet, start occlusion culling.
+// 如果Pass One没有渲染此Meshlet，则开始进行遮挡剔除判断。
 if (culling_flag == 0) {
   const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
   const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
 
-  // Same as the previous phase, no further explanation needed.
+  // 同前一阶段，不再做解释。
   float3 aabb_min_screen, aabb_max_screen;
   if (!to_screen_aabb(g_global_uniform.vp_mtx, bound_box_min, bound_box_max, aabb_min_screen, aabb_max_screen)) {
     if (is_occluded(in_hiz_image, g_push_constants.hiz_levels, g_push_constants.hiz_size, aabb_min_screen, aabb_max_screen)) {
@@ -290,29 +290,31 @@ if (culling_flag == 0) {
   }
 }
 
-Both Pass One and Pass Two use Wave functions to count the number of visible Meshlets and then issue the corresponding number of Mesh Shader calls.
+Pass One和Pass Two都是用Wave函数进行统计可见Meshlet数量，然后发起对应数量的Mesh Shader调用。
 ```HLSL
 if (is_visible) {
   const uint index = WavePrefixCountBits(is_visible);
   ms_payload.meshlet_indices[index] = meshlet_index;
 }
 
-// One Meshlet initiates one Mesh Shader Group.
+// 一个Meshlet发起一个Mesh Shader Group。
 const uint visible_count = WaveActiveCountBits(is_visible);
 DispatchMesh(visible_count, 1, 1);
 ```
 
-The main advantage of this method is that it does not require distinguishing between Occluder and Occludee. The depth buffer from the previous frame is directly used as the Occluder, and all objects to be rendered in the current frame are treated as Occludees. Therefore, there is no need for simplified Occluder-specific meshes.
+该方法的主要优点是不需要区分Occluder和Occludee。前一帧的深度缓冲直接作为Occluder，所有本帧要渲染的对象都作为Occludee处理。因此，不再需要简易的Occluder专用网格。
 
-Moreover, after processing the second phase, there will be no objects that should be rendered but are culled (false negatives), completely eliminating the phenomenon of objects momentarily disappearing, which is common in UE4.
+此外，在第二阶段处理完之后，不会再存在本应被渲染却因剔除而消失的物体（假阴性），也就是常见于UE4的物体短暂消失的现象将完全消除。
 
-However, there will still be objects that should be culled but are not (false positives). Whether processed on the CPU or GPU, using bounding boxes for occlusion checks cannot avoid false positives. In this method, even if the bounding box is completely occluded, false positives may still occur. However, as mentioned earlier, objects rendered due to false positives are not likely to appear multiple times in consecutive frames. For example, if the camera position in Frame N+1 is the same as in Frame N, the depth buffer from the previous frame has already rendered the ellipse, and the square will be occluded in both phases, thus not being rendered.
+然而，也会存在本应被剔除却没有被剔除的物体（假阳性）。无论是在CPU还是GPU处理，只要用包围盒进行遮挡检查，就无法避免假阳性。然而，在这个方法中，即使包围盒完全被遮挡，仍可能存在假阳性。不过，正如前述，被假阳性渲染的物体并不容易在连续帧中多次出现。例如上图中，如果N+1帧与N帧的摄像机位置相同，前一帧的深度缓冲已经渲染了椭圆，方形在两阶段中都会被遮挡，因而不会被绘制。
 
-Despite its many advantages, this method also has a drawback: culling is performed twice. Frustum culling and backface culling are performed only once, but the more time-consuming occlusion culling may be performed up to twice, which is a significant burden.
+尽管这个方法有许多优点，但也有缺点，那就是剔除处理会进行两次。视锥剔除和背面剔除只进行一次，但较为耗时的遮挡剔除最多要进行两次，负担不可小觑。
 
-### Rendering Visibility ID
+当用深度缓冲进行剔除时，使用全分辨率深度缓存会增加负担，因此需要生成分层深度（HiZ）。而且，这需要在每个阶段完成后进行，全场景需要进行两次。由于深度缓冲从写入到读取的状态切换时，会伴随深度缓冲的解压缩和缓存刷新，因此计算量不容忽视。
 
-Using Mesh Shader makes rendering Visibility ID relatively simple, as you only need to write the SV_PrimitiveID data.
+### 渲染Visibility ID
+
+使用Mesh Shader后，渲染Visibility ID相对简单，只需要写入SV_PrimitiveID数据即可。
 
 ```HLSL
 struct ToFragmentPrimitive {
@@ -322,7 +324,7 @@ struct ToFragmentPrimitive {
 primitives[triangle_id].primitive_id = pack_meshlet_triangle_index(meshlet_index, triangle_id);
 ```
 
-Since our Meshlet has a maximum of 124 triangles, the triangle_id only needs 7 bits, and the meshlet_index can store 25 bits. The functions for packing and unpacking the Visibility ID are as follows.
+由于我们的Meshlet做多124个三角形，因此triangle_id只需要7位，meshlet_index可以存储25位。打包和解包Visibility ID函数如下。
 
 ```HLSL
 uint pack_meshlet_triangle_index(uint meshlet_index, uint triangle_index) {
@@ -335,14 +337,14 @@ void unpack_meshlet_triangle_index(uint packed_index, out uint meshlet_index, ou
 }
 ```
 
-The final content of the Visibility Buffer is as follows:
+最终Visibility Buffer内容如下
 ![Image Intro](images/visibility_id.png)
 
-### Material Classification and Sorting
+### 材质分类排序
 
-For the subsequent drawing, we need to generate IndirectDraw parameters for each type of material and draw them in 64x64 tiles.
+为了接下里的绘制，这里需要为每种类型的材质生成IndirectDraw参数，并按64x64的Tile大小进行绘制。
 
-Here, we use the method from UE5, first writing different types of materials into the Depth Buffer.
+这里使用UE5的方法，首先将不同的材质类型写入Depth Buffer中。
 
 ```HLSL
 const uint vis_id = in_vis_buffer[screen_xy];
@@ -354,20 +356,20 @@ const DrawData draw_data = g_draw_data[meshlet.draw_index];
 output.depth = (float)draw_data.material_index / (float)CLASSIFY_DEPTH_RANGE;
 ```
 
-CLASSIFY_DEPTH_RANGE is a constant that is large enough to accommodate all material types in the scene.
+CLASSIFY_DEPTH_RANGE是一个常量，足以容纳场景中所有的材质类型。
 
-Next, we use a Compute Shader to classify the materials. Let's first look at the classification function.
+接下来就是利用Compute Shader对材质进行分类了，先看一下分类函数。
 
 ```HLSL
 // CLASSIFY_DEPTH_RANGE = CLASSIFY_NUM_OF_MATERIALS_PER_GROUP * 32
-// A uint is 32 bits, so we need a group-shared memory of length CLASSIFY_NUM_OF_MATERIALS_PER_GROUP to store material information.
+// 一个uint为32位，所以这里需要长度为CLASSIFY_NUM_OF_MATERIALS_PER_GROUP的组内共享内存保存材质信息。
 groupshared uint gs_material_flag[CLASSIFY_NUM_OF_MATERIALS_PER_GROUP];
 
 void classify_pixel(in uint2 pos) {
   if (all(lessThan(pos, g_push_constants.screen_size))) {
     const float depth = in_depth_buffer.Load(pos, 0);
 
-    // This pixel is valid and not at infinity (background).
+    // 此像素有效，不在无限远（背景）上。
     if (depth > 0.0) {
       const uint vis_id = in_vis_buffer.Load(pos, 0);
       uint meshlet_index, triangle_id;
@@ -379,14 +381,14 @@ void classify_pixel(in uint2 pos) {
       const uint index = draw_data.material_index / 32;
       const uint bit = draw_data.material_index % 32;
       uint orig;
-      // Mark the material type at this position in group-shared memory.
+      // 将此位置的材质类型标记到组内共享内存上。
       InterlockedOr(gs_material_flag[index], 0x1u << bit, orig);
     }
   }
 }
 ```
 
-The entire classification process is as follows.
+整个分类流程如下。
 
 ```HLSL
 [numthreads(CLASSIFY_THREAD_WIDTH, CLASSIFY_THREAD_WIDTH, 1)]
@@ -395,14 +397,14 @@ void main(
   uint3 group_thread_id : SV_GroupThreadID,
   uint3 dispatch_thread_id : SV_DispatchThreadID)
 {
-  // Initialize group-shared memory.
+  // 初始化组内共享内存。
   const uint mat_chunk_index = group_thread_id.y * CLASSIFY_THREAD_WIDTH + group_thread_id.x;
   gs_material_flag[mat_chunk_index] = 0x0;
 
-  // Group synchronization.
+  // 组内同步。
   GroupMemoryBarrierWithGroupSync();
 
-  // Classify materials for pixels within a 64x64 range.
+  // 对64x64范围内的像素进行材质分类。
   const uint2 base_pos = group_id.xy * CLASSIFY_TILE_WIDTH + group_thread_id.xy;
   for (uint x = 0; x < 4; x++) {
     for (uint y = 0; y < 4; y++) {
@@ -410,10 +412,10 @@ void main(
     }
   }
 
-  // Group synchronization.
+  // 组内同步。
   GroupMemoryBarrierWithGroupSync();
 
-  // Read classification information and generate IndirectDraw data.
+  // 读取分类信息，并生成IndirectDraw数据。
   uint bits = gs_material_flag[mat_chunk_index];
   if (bits != 0) {
     const uint mat_base_index = mat_chunk_index * 32;
@@ -422,13 +424,13 @@ void main(
       const uint mat_index = mat_base_index + first_bit;
       bits &= ~(0x1u << first_bit);
 
-      // An IndirectDrawArgs is 16 bytes (vertex_count, instance_count, first_vertex, first_instance).
+      // 一个IndirectDrawArgs大小为16字节（vertex_count，instance_count，first_vertex，first_instance）。
       const uint arg_addr = mat_index * 16;
       uint store_addr = 0;
-      // Increment the instance_count field to mark that this 64x64 tile needs to be drawn.
+      // 对instance_count字段加1，标记此64x64的Tile需要绘制。
       InterlockedAdd(out_indirect_draw_arguments, arg_addr + 4, 1, store_addr);
 
-      // Record the index of this tile to generate the corresponding quadrilateral for drawing this tile later.
+      // 记录此Tile的Index，方便后面绘制时生成对应的四边形绘制此Tile。
       const uint tile_no = group_id.y * g_push_constants.x_size + group_id.x;
       store_addr = ((mat_index * g_push_constants.num_of_tiles) + store_addr) * 4;
       out_tile_index.Store(store_addr, tile_no);
@@ -437,7 +439,7 @@ void main(
 }
 ```
 
-With the above Material Depth, you can call IndirectDraw to draw each type of material, using Z-Test Equal to draw only the pixels covered by the material.
+有了以上Material Depth，就可以针对每种类型的材质调用IndirectDraw绘制了，此时使用Z-Test Equal只绘制材质覆盖的像素。
 
 ```rust
 for material_index in 0..num_of_materials {
@@ -451,16 +453,16 @@ for material_index in 0..num_of_materials {
 }
 ```
 
-Here, for simplicity, the number of materials is directly used as the material type. In actual use, the material type should be used.
+这里为了简化，直接使用了材质数量当作了材质类型，实际使用时，应使用材质类型。
 
-### Rendering GBuffer
+### 渲染GBuffer
 
-Although GBuffer is not mandatory in Visibility Rendering, considering the increasing complexity of game rendering today, to avoid repeatedly fetching triangle geometry data and material data, especially since manual calculation of partial derivatives is required in Visibility Rendering, we still perform GBuffer rendering here to separate the Geometry phase and the Lighting phase.
+虽然在Visibility Rendering中，GBuffer不是必须的，但考虑到现在的游戏渲染越来越复杂，为避免重复获取三角形几何数据和材质数据，特别是Visibility Rendering中必须手动计算偏导数，因此这里仍然进行GBuffer渲染将Geometry阶段和Lighting阶段分离。
 
-First, we need to restore geometric information from the Visibility Buffer.
+首先需要从Visibility Buffer中还原几何信息。
 
 ```HLSL
-// Retrieve the indices of the three vertices of a triangle using Meshlet data.
+// 通过Meshlet数据获取三角形三个顶点的索引。
 uint3 load_primitive_index(uint index, uint draw_index) {
   const uint primitive_index = g_unique_primitives[draw_index].Load(index * 4);
 
@@ -479,7 +481,7 @@ uint triangle_index = meshlet.offset_of_primitives + triangle_id;
 const uint3 tri = load_primitive_index(triangle_index, meshlet.draw_index);
 ```
 
-Use the method from http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/ to calculate barycentric coordinates and partial derivatives.
+计算质心和偏导数时使用 http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/ 的方法。
 ```HLSL
 struct BaryDeriv {
   float3 lambda;
@@ -537,7 +539,7 @@ float3 interpolate_with_deriv(BaryDeriv deriv, float v0, float v1, float v2) {
 }
 ```
 
-The process of retrieving specific vertex data is quite lengthy, so it is omitted here. Below is the structure for the retrieved vertex data.
+具体顶点数据的获取比较冗长，这里就略过了，只列出获取后的顶点数据。
 
 ```HLSL
 struct VertexAttributes {
@@ -552,7 +554,7 @@ struct VertexAttributes {
 };
 ```
 
-Finally, we write to the GBuffer.
+最后就是写入GBuffer了。
 
 ```HLSL
 if (mtrl.base_color_map_index != INVALID_INDEX) {
@@ -571,18 +573,18 @@ if (mtrl.base_color_map_index != INVALID_INDEX) {
 output.normal = float4(vertex_attributes.normal * 0.5 + 0.5, 1.0);
 ```
 
-At this point, we have obtained the complete GBuffer data.
+至此，我们已经获得了完整的GBuffer数据。
 
 ![Image Albedo](images/albedo.png)
 
 ![Image Normal](images/normal.png)
 
-### Lighting the World
+### 照亮世界
 
-There isn't much to discuss at this stage. We already have Albedo, Normal, and Depth. The remaining task is to restore various attributes in world space and compute lighting using BRDF. There are already many articles on this topic, so it won't be repeated here.
+其实到了这一步没有什么好讲的啦。我们已经有了Albedo、Normal和Depth，剩下的就是在世界空间中还原各种属性计算光照了BRDF了。相关的介绍文章已经很多了，这里就不再重复了。
 
 ![Image Final](images/final.png)
 
-## Acknowledgements
+## 鸣谢
 
-The development of this project was greatly inspired by Monsho's https://github.com/Monsho/VisibilityBuffer. I have learned a lot from it and am deeply grateful!
+本项目的开发，深受 Monsho 的 https://github.com/Monsho/VisibilityBuffer 启发。从中学到了很多知识，深表感谢！
