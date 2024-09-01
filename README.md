@@ -481,7 +481,7 @@ uint triangle_index = meshlet.offset_of_primitives + triangle_id;
 const uint3 tri = load_primitive_index(triangle_index, meshlet.draw_index);
 ```
 
-计算质心和偏导数时使用http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/的方法。
+计算质心和偏导数时使用 http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/ 的方法。
 ```HLSL
 struct BaryDeriv {
   float3 lambda;
