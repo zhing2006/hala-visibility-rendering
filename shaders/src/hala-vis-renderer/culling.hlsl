@@ -23,14 +23,6 @@ bool to_screen_aabb(in float4x4 vp_mtx, in float3 aabb_min_ws, in float3 aabb_ma
   P5 /= P5.w;
   P6 /= P6.w;
   P7 /= P7.w;
-  P0.xy = P0.xy * float2(0.5, -0.5) + 0.5;
-  P1.xy = P1.xy * float2(0.5, -0.5) + 0.5;
-  P2.xy = P2.xy * float2(0.5, -0.5) + 0.5;
-  P3.xy = P3.xy * float2(0.5, -0.5) + 0.5;
-  P4.xy = P4.xy * float2(0.5, -0.5) + 0.5;
-  P5.xy = P5.xy * float2(0.5, -0.5) + 0.5;
-  P6.xy = P6.xy * float2(0.5, -0.5) + 0.5;
-  P7.xy = P7.xy * float2(0.5, -0.5) + 0.5;
 
   max_depth = max(max(max(max(max(max(max(P0.z, P1.z), P2.z), P3.z), P4.z), P5.z), P6.z), P7.z);
 
@@ -40,6 +32,7 @@ bool to_screen_aabb(in float4x4 vp_mtx, in float3 aabb_min_ws, in float3 aabb_ma
 
   aabb.xy = min(min(min(min(min(min(min(P0.xy, P1.xy), P2.xy), P3.xy), P4.xy), P5.xy), P6.xy), P7.xy);
   aabb.zw = max(max(max(max(max(max(max(P0.xy, P1.xy), P2.xy), P3.xy), P4.xy), P5.xy), P6.xy), P7.xy);
+  aabb = aabb.xwzy * float4(0.5, -0.5, 0.5, -0.5) + 0.5;
 
   return false;
 
@@ -62,22 +55,18 @@ bool to_screen_aabb(in float4x4 vp_mtx, in float3 aabb_min_ws, in float3 aabb_ma
   //   points[point_index].xy = points[point_index].xy * float2(0.5, -0.5) + 0.5;
   // }
 
-  // aabb_min_screen.xy = aabb_max_screen.xy = points[0].xy;
-  // float max_z;
-  // max_z = points[0].z;
+  // aabb.xy = aabb.zw = points[0].xy;
+  // max_depth = points[0].z;
   // ANNOTATION_UNROLL
   // for (point_index = 1; point_index < 8; point_index++) {
-  //   aabb_min_screen.xy = min(aabb_min_screen.xy, points[point_index].xy);
-  //   aabb_max_screen.xy = max(aabb_max_screen.xy, points[point_index].xy);
-  //   max_z = max(max_z, points[point_index].z);
+  //   aabb.xy = min(aabb.xy, points[point_index].xy);
+  //   aabb.zw = max(aabb.zw, points[point_index].xy);
+  //   max_depth = max(max_depth, points[point_index].z);
   // }
-  // aabb_min_screen.z = aabb_max_screen.z = max_z;
-  // if (max_z >= 1.0) {
+  // if (max_depth >= 1.0) {
   //   return true;
   // }
 
-  // aabb_min_screen = clamp(aabb_min_screen, float3(0, 0, 0), float3(1, 1, 1));
-  // aabb_max_screen = clamp(aabb_max_screen, float3(0, 0, 0), float3(1, 1, 1));
   // return false;
 }
 
