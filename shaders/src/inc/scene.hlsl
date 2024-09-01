@@ -79,6 +79,13 @@ struct Vertex {
 BEGIN_BUFFER_BINDLESS(1, 2, Vertex)
 END_BUFFER_BINDLESS(1, 2, Vertex, g_vertices)
 
+// Not used in the current implementation.
+// BEGIN_BUFFER_BINDLESS(1, 3, uint)
+// END_BUFFER_BINDLESS(1, 3, uint, g_indices)
+
+// BEGIN_BUFFER_BINDLESS(1, 4, Meshlet)
+// END_BUFFER_BINDLESS(1, 4, Meshlet, g_meshlets)
+
 BEGIN_BUFFER_BINDLESS(1, 3, uint)
 END_BUFFER_BINDLESS(1, 3, uint, g_unique_vertices)
 
