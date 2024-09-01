@@ -24,7 +24,7 @@ Visibility Buffer的概念最早可以追溯到2013年，由Christopher A. Burns
 
 完成编译后可以直接运行。
 
-    ./target/（debug或release）/hala-sdf-baker -c conf/config.toml
+    ./target/（debug或release）/hala-vis-renderer -c conf/config.toml
 
 ## 渲染流程
 
