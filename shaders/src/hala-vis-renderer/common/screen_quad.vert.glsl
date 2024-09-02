@@ -16,5 +16,5 @@ void main() {
 
   const float2 uv = float2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2) * 0.5;
   gl_Position = float4(uv * 2.0 - 1.0, 0.0, 1.0);
-  out_uv = uv;
+  out_uv = uv * float2(1, -1) + float2(0, 1);
 }

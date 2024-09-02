@@ -14,7 +14,7 @@ ToFragment main(VertexInput input) {
 
   const float2 uv = float2((input.vertex_id << 1) & 2, input.vertex_id & 2) * 0.5;
   output.position = float4(uv * 2.0 - 1.0, 0.0, 1.0);
-  output.uv = uv;
+  output.uv = uv * float2(1, -1) + float2(0, 1);
 
   return output;
 }

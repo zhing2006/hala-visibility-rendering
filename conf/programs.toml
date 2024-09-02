@@ -258,6 +258,18 @@ test_enable = false
 write_enable = false
 compare_op = "always"
 
+## Texture to screen program.
+[graphics_programs.texture_to_screen]
+vertex_shader_file_path = "common/screen_quad.vert.spv"
+fragment_shader_file_path = "common/texture_2_screen.frag.spv"
+bindings = ["combined_image_sampler"]
+primitive_topology = "triangle_strip"
+
+[graphics_programs.texture_to_screen.depth_info]
+test_enable = false
+write_enable = false
+compare_op = "always"
+
 ###############################################################################
 
 ## Clear indirect buffer program.
