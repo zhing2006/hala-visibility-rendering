@@ -737,6 +737,10 @@ impl VisRenderer {
       .ok_or(HalaRendererError::new("Failed to find the clear indirect buffer program.", None))?;
     let clear_indirect_buffer_descriptor_set = self.compute_descriptor_sets.get("clear_indirect_buffer")
       .ok_or(HalaRendererError::new("Failed to find the clear indirect buffer descriptor set.", None))?;
+
+    let mut push_constants = Vec::new();
+    push_constants.extend_from_slice(&(scene.materials.len() as u32).to_le_bytes());
+
     clear_indirect_buffer_program.bind(
       index,
       graphics_command_buffers,
@@ -746,6 +750,12 @@ impl VisRenderer {
         texture_descriptor_set,
         clear_indirect_buffer_descriptor_set,
       ],
+    );
+    clear_indirect_buffer_program.push_constants(
+      index,
+      graphics_command_buffers,
+      0,
+      push_constants.as_slice(),
     );
 
     graphics_command_buffers.dispatch(
@@ -777,7 +787,7 @@ impl VisRenderer {
           src_stage_mask: hala_gfx::HalaPipelineStageFlags2::COMPUTE_SHADER,
           dst_stage_mask: hala_gfx::HalaPipelineStageFlags2::COMPUTE_SHADER,
           src_access_mask: hala_gfx::HalaAccessFlags2::SHADER_WRITE,
-          dst_access_mask: hala_gfx::HalaAccessFlags2::SHADER_READ | hala_gfx::HalaAccessFlags2::SHADER_WRITE,
+          dst_access_mask: hala_gfx::HalaAccessFlags2::SHADER_READ,
           buffer: self.indirect_draw_buffer.raw,
           size: self.indirect_draw_buffer.size,
           ..Default::default()

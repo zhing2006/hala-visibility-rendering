@@ -51,7 +51,7 @@
   //////////////////////////////////////////////////////////////////////////
   // Begin Function Code.
 
-  const float3 color = LOAD_SUBPASS_INPUT(in_albedo_image).rgb;
+  const float3 albedo = LOAD_SUBPASS_INPUT(in_albedo_image).rgb;
   const float3 normal = LOAD_SUBPASS_INPUT(in_normal_image).xyz * 2.0 - 1.0;
   const float depth = LOAD_SUBPASS_INPUT(in_depth_image).x;
 
@@ -71,7 +71,7 @@
 
   const float intensity = max(dot(normal, light_dir) * attenuation, 0.0);
 
-  OUT_COLOR = float4(light.intensity * intensity * color, 1.0);
+  OUT_COLOR = float4(light.intensity * intensity * albedo, 1.0);
 
   // End Function Code.
   //////////////////////////////////////////////////////////////////////////
