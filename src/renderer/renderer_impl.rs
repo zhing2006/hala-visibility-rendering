@@ -807,6 +807,42 @@ impl VisRenderer {
           id_buffer_visualization_descriptor_set,
         )?;
       } else if self.debug_settings.show_material_depth || self.debug_settings.show_albedo || self.debug_settings.show_normal {
+        if self.debug_settings.show_albedo {
+          graphics_command_buffers.set_image_barriers(
+            index,
+            &[
+              hala_gfx::HalaImageBarrierInfo {
+                old_layout: hala_gfx::HalaImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+                new_layout: hala_gfx::HalaImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                src_access_mask: hala_gfx::HalaAccessFlags2::COLOR_ATTACHMENT_WRITE,
+                dst_access_mask: hala_gfx::HalaAccessFlags2::INPUT_ATTACHMENT_READ,
+                src_stage_mask: hala_gfx::HalaPipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+                dst_stage_mask: hala_gfx::HalaPipelineStageFlags2::FRAGMENT_SHADER,
+                aspect_mask: hala_gfx::HalaImageAspectFlags::COLOR,
+                image: self.albedo_image.raw,
+                ..Default::default()
+              },
+            ],
+          );
+        } else if self.debug_settings.show_normal {
+          graphics_command_buffers.set_image_barriers(
+            index,
+            &[
+              hala_gfx::HalaImageBarrierInfo {
+                old_layout: hala_gfx::HalaImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+                new_layout: hala_gfx::HalaImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                src_access_mask: hala_gfx::HalaAccessFlags2::COLOR_ATTACHMENT_WRITE,
+                dst_access_mask: hala_gfx::HalaAccessFlags2::INPUT_ATTACHMENT_READ,
+                src_stage_mask: hala_gfx::HalaPipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+                dst_stage_mask: hala_gfx::HalaPipelineStageFlags2::FRAGMENT_SHADER,
+                aspect_mask: hala_gfx::HalaImageAspectFlags::COLOR,
+                image: self.normal_image.raw,
+                ..Default::default()
+              },
+            ],
+          );
+        }
+
         let attachment_to_screen_program = self.graphics_programs.get("attachment_to_screen")
           .ok_or(HalaRendererError::new("Failed to find the attachment to screen program.", None))?;
         let attachment_to_screen_descriptor_set = self.graphics_descriptor_sets.get("attachment_to_screen");

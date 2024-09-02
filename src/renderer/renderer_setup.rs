@@ -10,7 +10,7 @@ impl VisRenderer {
   pub(crate) fn setup_debug(&mut self) -> Result<(), HalaRendererError> {
     let attachment_to_screen_descriptor_set = self.graphics_descriptor_sets.get("attachment_to_screen")
       .ok_or(HalaRendererError::new("Failed to find the attachment to screen descriptor set.", None))?;
-    if self.debug_settings.show_albedo{
+    if self.debug_settings.show_albedo {
       attachment_to_screen_descriptor_set.update_input_attachments(
         0,
         0,

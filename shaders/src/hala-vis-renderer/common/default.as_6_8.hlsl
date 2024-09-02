@@ -46,23 +46,22 @@
 #endif
   const float3 camera_position = g_cameras.data[0].position;
 
-  // printf("[TASK SHADER] Draw Index: %d\n", meshlet.draw_index);
-  // printf("[TASK SHADER] Material Index: %d\n", draw_data.material_index);
-
   bool is_visible = true;
 
   const float3 cone_apex = mul(per_object_data.m_mtx, float4(meshlet.cone_apex, 1.0)).xyz;
   const float3 cone_axis = normalize(mul(float4(meshlet.cone_axis, 0.0), per_object_data.i_m_mtx).xyz);
   if (dot(normalize(cone_apex - camera_position), cone_axis) >= meshlet.cone_cutoff) {
     is_visible = false;
-    // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by cone test.\n", meshlet.draw_index, meshlet_index);
   }
 
-  const float3 bound_box_min = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz - meshlet.bound_sphere.w, 1.0)).xyz;
-  const float3 bound_box_max = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz + meshlet.bound_sphere.w, 1.0)).xyz;
-  if (is_box_frustum_culled(bound_box_min, bound_box_max)) {
-    is_visible = false;
-    // printf("[TASK SHADER] Draw Index %d Meshlet %d is culled by frustum test.\n", meshlet.draw_index, meshlet_index);
+  if (is_visible) {
+    const float world_scale = max(length(per_object_data.m_mtx[0]), max(length(per_object_data.m_mtx[1]), length(per_object_data.m_mtx[2])));
+    const float3 bound_sphere_center_ws = mul(per_object_data.m_mtx, float4(meshlet.bound_sphere.xyz, 1.0)).xyz;
+    const float bound_sphere_radius = meshlet.bound_sphere.w * world_scale;
+
+    if (is_sphere_frustum_culled(bound_sphere_center_ws, bound_sphere_radius)) {
+      is_visible = false;
+    }
   }
 
   if (is_visible) {
