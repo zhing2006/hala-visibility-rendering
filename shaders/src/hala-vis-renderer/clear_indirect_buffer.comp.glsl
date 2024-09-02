@@ -1,4 +1,5 @@
-#version 460
+#version 460 core
+
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
 #extension GL_KHR_shader_subgroup_vote : require
