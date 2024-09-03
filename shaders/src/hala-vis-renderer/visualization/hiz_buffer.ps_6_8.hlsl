@@ -53,8 +53,7 @@
   //////////////////////////////////////////////////////////////////////////
   // Begin Function Code.
 
-  const float2 uv = float2(IN_UV.x, 1.0 - IN_UV.y);
-  OUT_COLOR = float4(SAMPLE_TEXTURE(in_depth_image, in_depth_sampler, uv).rrr * g_push_constants.scale, 1.0);
+  OUT_COLOR = float4(SAMPLE_TEXTURE(in_depth_image, in_depth_sampler, IN_UV).rrr * g_push_constants.scale, 1.0);
 
   // End Function Code.
   //////////////////////////////////////////////////////////////////////////
