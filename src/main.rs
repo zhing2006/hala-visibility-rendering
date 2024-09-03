@@ -342,7 +342,6 @@ fn main() -> Result<()> {
   let context = MyApplicationContext::new()?;
   context.init()?;
 
-
   // Run the application.
   let mut app = HalaApplication::new(Box::new(context));
   app.run()?;
