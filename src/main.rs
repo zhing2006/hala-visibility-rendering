@@ -161,7 +161,7 @@ impl HalaApplicationContextTrait for MyApplicationContext {
 
     // Setup the imgui.
     self.imgui = Some(HalaImGui::new(
-      std::rc::Rc::clone(&(*renderer.resources().context)),
+      std::rc::Rc::clone(&renderer.resources().context),
       false,
     )?);
 

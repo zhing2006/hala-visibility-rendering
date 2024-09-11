@@ -87,17 +87,16 @@ impl GlobalConstants {
 pub struct VisRenderer {
 
   pub(crate) info: HalaRendererInfo,
-  pub(crate) resources: std::mem::ManuallyDrop<HalaRendererResources>,
   pub(crate) data: HalaRendererData,
   pub(crate) statistics: HalaRendererStatistics,
 
   pub(crate) debug_settings: DebugSettings,
 
-  pub(crate) static_descriptor_set: std::mem::ManuallyDrop<hala_gfx::HalaDescriptorSet>,
+  pub(crate) static_descriptor_set: hala_gfx::HalaDescriptorSet,
   pub(crate) dynamic_descriptor_set: Option<hala_gfx::HalaDescriptorSet>,
   pub(crate) textures_descriptor_set: Option<hala_gfx::HalaDescriptorSet>,
 
-  pub(crate) global_uniform_buffer: std::mem::ManuallyDrop<hala_gfx::HalaBuffer>,
+  pub(crate) global_uniform_buffer: hala_gfx::HalaBuffer,
   pub(crate) object_uniform_buffers: Vec<Vec<hala_gfx::HalaBuffer>>,
 
   pub(crate) scene_in_gpu: Option<gpu::HalaScene>,
@@ -119,10 +118,12 @@ pub struct VisRenderer {
 
   pub(crate) hiz_descriptor_sets: Vec<hala_gfx::HalaDescriptorSet>,
 
-  pub(crate) point_sampler: std::mem::ManuallyDrop<hala_gfx::HalaSampler>,
+  pub(crate) point_sampler: hala_gfx::HalaSampler,
 
-  pub(crate) indirect_draw_buffer: std::mem::ManuallyDrop<hala_gfx::HalaBuffer>,
+  pub(crate) indirect_draw_buffer: hala_gfx::HalaBuffer,
   pub(crate) tile_index_buffer: std::mem::ManuallyDrop<hala_gfx::HalaBuffer>,
+
+  pub(crate) resources: HalaRendererResources,
 
 }
 
@@ -151,9 +152,6 @@ impl Drop for VisRenderer {
 
     unsafe {
       std::mem::ManuallyDrop::drop(&mut self.tile_index_buffer);
-      std::mem::ManuallyDrop::drop(&mut self.indirect_draw_buffer);
-
-      std::mem::ManuallyDrop::drop(&mut self.point_sampler);
 
       std::mem::ManuallyDrop::drop(&mut self.hiz_image);
       std::mem::ManuallyDrop::drop(&mut self.normal_image);
@@ -161,12 +159,6 @@ impl Drop for VisRenderer {
       std::mem::ManuallyDrop::drop(&mut self.material_depth_image);
       std::mem::ManuallyDrop::drop(&mut self.depth_image);
       std::mem::ManuallyDrop::drop(&mut self.visibility_image);
-
-      std::mem::ManuallyDrop::drop(&mut self.global_uniform_buffer);
-
-      std::mem::ManuallyDrop::drop(&mut self.static_descriptor_set);
-
-      std::mem::ManuallyDrop::drop(&mut self.resources);
     }
 
     log::info!("The HalaRenderer \"{}\" is dropped.", self.info.name);

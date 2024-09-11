@@ -262,17 +262,17 @@ impl VisRenderer {
     log::debug!("A HalaRenderer \"{}\"[{} x {}] is created.", name, width, height);
     Ok(Self {
       info: HalaRendererInfo::new(name, width, height),
-      resources: std::mem::ManuallyDrop::new(resources),
+      resources,
       data: HalaRendererData::new(),
       statistics: HalaRendererStatistics::new(),
 
       debug_settings: DebugSettings::default(),
 
-      static_descriptor_set: std::mem::ManuallyDrop::new(static_descriptor_set),
+      static_descriptor_set,
       dynamic_descriptor_set: None,
       textures_descriptor_set: None,
 
-      global_uniform_buffer: std::mem::ManuallyDrop::new(global_uniform_buffer),
+      global_uniform_buffer,
       object_uniform_buffers: Vec::new(),
 
       scene_in_gpu: None,
@@ -294,9 +294,9 @@ impl VisRenderer {
 
       hiz_descriptor_sets,
 
-      point_sampler: std::mem::ManuallyDrop::new(point_sampler),
+      point_sampler,
 
-      indirect_draw_buffer: std::mem::ManuallyDrop::new(indirect_draw_buffer),
+      indirect_draw_buffer,
       tile_index_buffer: std::mem::ManuallyDrop::new(tile_index_buffer),
     })
   }

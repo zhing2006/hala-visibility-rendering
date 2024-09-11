@@ -59,7 +59,8 @@
     discard;
   }
 
-  const float4 clip_pos = float4(IN_UV * 2.0 - 1.0, depth, 1.0);
+  const float2 pos_ndc = float2(IN_UV.x, 1.0 - IN_UV.y);
+  const float4 clip_pos = float4(pos_ndc * 2.0 - 1.0, depth, 1.0);
   const float4 world_w = mul(g_global_uniform.i_vp_mtx, clip_pos);
   const float3 pos = world_w.xyz * rcp(world_w.w);
 
